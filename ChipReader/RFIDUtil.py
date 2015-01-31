@@ -74,7 +74,7 @@ class RFIDUtil:
         Calls RFID card_auth() with saved auth information if needed.
         Returns error state from method call.
         """
-        auth_data = (block_address, self.key, self.uid)
+        auth_data = (block_address, self.method, self.key, self.uid)
         if (self.last_auth != auth_data) or force:
             if self.debug:
                 print "Calling card_auth on UID " + str(self.uid)

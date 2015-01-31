@@ -7,6 +7,9 @@ You'll need [**SPI-Py**](https://github.com/lthiery/SPI-Py).
 
 [MIFARE datasheet](http://www.nxp.com/documents/data_sheet/MF1S503x.pdf) can be useful.
 
+## Sectors? Blocks?
+Classic 1K MIFARE tag has **16 sectors**, each contains **4 blocks**. Each block has 16 bytes. All this stuff is indexed - you must count from zero. The library uses "**block addresses**", which are positions of blocks - so block address 5 is second block of second sector, thus it's block 1 of sector 1 (indexes). Block addresses 0, 1, 2, 3 are all from first sector - sector 0. Block addresses 4, 5, 6, 7 are from second sector - sector 1 and so on. You should **not write** to first block - S0B0, because it contains manufacturer data. Each sector has it's **sector trailer**, which is the last block of this sector - block 3. This block contains keys and access bits for corresponding sector. For more info, look at page 10 of the datasheet. You can use [this](http://www.proxmark.org/forum/viewtopic.php?id=1408) useful utility to calculate access bits.
+
 ## Connecting
 Connecting RC522 module to SPI is pretty easy. You can use [this neat website](http://pi.gadgetoid.com/pinout) for reference.
 

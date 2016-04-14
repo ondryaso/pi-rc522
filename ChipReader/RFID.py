@@ -62,10 +62,10 @@ class RFID:
 	        GPIO.output(pin_ce, 1)
 
     def dev_write(self, address, value):
-        spi_transfer(((address << 1) & 0x7E, value))
+        self.spi_transfer(((address << 1) & 0x7E, value))
 
     def dev_read(self, address):
-        return spi_transfer((((address << 1) & 0x7E) | 0x80, 0))[1]
+        return self.spi_transfer((((address << 1) & 0x7E) | 0x80, 0))[1]
 
     def set_bitmask(self, address, mask):
         current = self.dev_read(address)

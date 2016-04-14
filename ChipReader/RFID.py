@@ -55,10 +55,10 @@ class RFID:
         self.set_antenna(True)
 
     def spi_transfer(self, data):
-        if pin_ce != 0:
+        if self.pin_ce != 0:
 	        GPIO.output(pin_ce, 0)
         SPI.transfer(data)
-        if pin_ce != 0:
+        if self.pin_ce != 0:
 	        GPIO.output(pin_ce, 1)
 
     def dev_write(self, address, value):

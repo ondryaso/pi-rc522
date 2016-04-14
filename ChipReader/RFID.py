@@ -276,6 +276,19 @@ class RFID:
         self.clear_bitmask(0x08, 0x08)
         self.authed = False
 
+    def halt(self):
+        """Swich state to HALT"""
+
+        buf = []
+        buf.append(self.act_end)
+        buf.append(0)
+
+        crc = self.calculate_crc(buf)
+        self.clear_bitmask(0x08, 0x80)
+        self.card_write(self.mode_transrec, buf)
+        self.clear_bitmask(0x08, 0x08)
+        self.authed = False
+
     def read(self, block_address):
         """
         Reads data from block. You should be authenticated before calling read.

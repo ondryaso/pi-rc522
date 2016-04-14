@@ -35,13 +35,16 @@ class RFID:
 
     authed = False
 
-    def __init__(self, dev='/dev/spidev0.0', speed=1000000, pin_rst=22):
+    def __init__(self, dev='/dev/spidev0.0', speed=1000000, pin_rst=22, pin_ce=0):
         self.pin_rst = pin_rst
 
         SPI.openSPI(device=dev, speed=speed)
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(pin_rst, GPIO.OUT)
         GPIO.output(pin_rst, 1)
+        if pin_ce != 0:
+	        GPIO.setup(pin_ce, GPIO.OUT)
+	        GPIO.output(pin_ce, 1)
         self.reset()
         self.dev_write(0x2A, 0x8D)
         self.dev_write(0x2B, 0x3E)
@@ -51,11 +54,18 @@ class RFID:
         self.dev_write(0x11, 0x3D)
         self.set_antenna(True)
 
+    def spi_transfer(self, data):
+        if pin_ce != 0:
+	        GPIO.output(pin_ce, 0)
+        SPI.transfer(data)
+        if pin_ce != 0:
+	        GPIO.output(pin_ce, 1)
+
     def dev_write(self, address, value):
-        SPI.transfer(((address << 1) & 0x7E, value))
+        spi_transfer(((address << 1) & 0x7E, value))
 
     def dev_read(self, address):
-        return SPI.transfer((((address << 1) & 0x7E) | 0x80, 0))[1]
+        return spi_transfer((((address << 1) & 0x7E) | 0x80, 0))[1]
 
     def set_bitmask(self, address, mask):
         current = self.dev_read(address)

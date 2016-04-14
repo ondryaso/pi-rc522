@@ -59,9 +59,10 @@ class RFID:
     def spi_transfer(self, data):
         if self.pin_ce != 0:
 	        GPIO.output(self.pin_ce, 0)
-        SPI.transfer(data)
+        r = SPI.transfer(data)
         if self.pin_ce != 0:
 	        GPIO.output(self.pin_ce, 1)
+	    return r
 
     def dev_write(self, address, value):
         self.spi_transfer(((address << 1) & 0x7E, value))

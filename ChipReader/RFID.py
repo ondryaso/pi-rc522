@@ -5,6 +5,7 @@ import time
 
 class RFID:
     pin_rst = 22
+    pin_ce = 0
 
     mode_idle = 0x00
     mode_auth = 0x0E
@@ -37,6 +38,7 @@ class RFID:
 
     def __init__(self, dev='/dev/spidev0.0', speed=1000000, pin_rst=22, pin_ce=0):
         self.pin_rst = pin_rst
+        self.pin_ce = pin_ce
 
         SPI.openSPI(device=dev, speed=speed)
         GPIO.setmode(GPIO.BOARD)

@@ -45,8 +45,8 @@ class RFID:
         GPIO.setup(pin_rst, GPIO.OUT)
         GPIO.output(pin_rst, 1)
         if pin_ce != 0:
-	        GPIO.setup(pin_ce, GPIO.OUT)
-	        GPIO.output(pin_ce, 1)
+            GPIO.setup(pin_ce, GPIO.OUT)
+            GPIO.output(pin_ce, 1)
         self.reset()
         self.dev_write(0x2A, 0x8D)
         self.dev_write(0x2B, 0x3E)
@@ -58,11 +58,11 @@ class RFID:
 
     def spi_transfer(self, data):
         if self.pin_ce != 0:
-	        GPIO.output(self.pin_ce, 0)
+            GPIO.output(self.pin_ce, 0)
         r = SPI.transfer(data)
         if self.pin_ce != 0:
-	        GPIO.output(self.pin_ce, 1)
-	    return r
+            GPIO.output(self.pin_ce, 1)
+        return r
 
     def dev_write(self, address, value):
         self.spi_transfer(((address << 1) & 0x7E, value))

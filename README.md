@@ -25,7 +25,7 @@ Connecting RC522 module to SPI is pretty easy. You can use [this neat website](h
 
 You can connect SDA pin also to CE1 (GPIO7, pin #26) and call the RFID constructor with *dev='/dev/spidev0.0'*
 and you can connect RST pin to any other free GPIO pin and call the constructor with *pin_rst=__BOARD numbering pin__*.
-__NOTE:__For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required.
+__NOTE:__For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required. For SPI1/2, *pin_ce=__BOARD numbering pin__* is required.
 
 ## Usage
 The library is split to two classes - **RFID** and **RFIDUtil**. You can use only RFID, RFIDUtil just makes life a little bit better. 

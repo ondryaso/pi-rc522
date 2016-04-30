@@ -26,6 +26,8 @@ Connecting RC522 module to SPI is pretty easy. You can use [this neat website](h
 You can connect SDA pin also to CE1 (GPIO7, pin #26) and call the RFID constructor with *dev='/dev/spidev0.0'*
 and you can connect RST pin to any other free GPIO pin and call the constructor with *pin_rst=__BOARD numbering pin__*.
 
+__NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required. For SPI1/2, *pin_ce=__BOARD numbering pin__* is required.
+
 ## Usage
 The library is split to two classes - **RFID** and **RFIDUtil**. You can use only RFID, RFIDUtil just makes life a little bit better. 
 You basically want to start with *while True* loop and "poll" the tag state. That's done using *request* method. Most of the methods
@@ -43,12 +45,14 @@ while True:
     (error, uid) = rdr.anticoll()
     if not error:
       print "UID: " + str(uid)
-      #Auth for block 10 (block 2 of sector 2) using default shipping key A
-      if rdr.card_auth(rdr.auth_a, 10, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], uid):
-        #This will print something like (False, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        print "Reading block 10: " + str(rdr.read(10))
-        #Always stop crypto1 when done working
-        rdr.stop_crypto()
+      #Select Tag is required before Auth
+      if not rdr.select_tag(uid):
+        #Auth for block 10 (block 2 of sector 2) using default shipping key A
+        if not rdr.card_auth(rdr.auth_a, 10, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], uid):
+          #This will print something like (False, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+          print "Reading block 10: " + str(rdr.read(10))
+          #Always stop crypto1 when done working
+          rdr.stop_crypto()
       
       
 #Calls GPIO cleanup

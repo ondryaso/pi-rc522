@@ -5,6 +5,7 @@ import time
 
 class RFID:
     pin_rst = 22
+    pin_ce = 0
 
     mode_idle = 0x00
     mode_auth = 0x0E
@@ -35,13 +36,17 @@ class RFID:
 
     authed = False
 
-    def __init__(self, dev='/dev/spidev0.0', speed=1000000, pin_rst=22):
+    def __init__(self, dev='/dev/spidev0.0', speed=1000000, pin_rst=22, pin_ce=0):
         self.pin_rst = pin_rst
+        self.pin_ce = pin_ce
 
         SPI.openSPI(device=dev, speed=speed)
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(pin_rst, GPIO.OUT)
         GPIO.output(pin_rst, 1)
+        if pin_ce != 0:
+            GPIO.setup(pin_ce, GPIO.OUT)
+            GPIO.output(pin_ce, 1)
         self.reset()
         self.dev_write(0x2A, 0x8D)
         self.dev_write(0x2B, 0x3E)
@@ -51,11 +56,19 @@ class RFID:
         self.dev_write(0x11, 0x3D)
         self.set_antenna(True)
 
+    def spi_transfer(self, data):
+        if self.pin_ce != 0:
+            GPIO.output(self.pin_ce, 0)
+        r = SPI.transfer(data)
+        if self.pin_ce != 0:
+            GPIO.output(self.pin_ce, 1)
+        return r
+
     def dev_write(self, address, value):
-        SPI.transfer(((address << 1) & 0x7E, value))
+        self.spi_transfer(((address << 1) & 0x7E, value))
 
     def dev_read(self, address):
-        return SPI.transfer((((address << 1) & 0x7E) | 0x80, 0))[1]
+        return self.spi_transfer((((address << 1) & 0x7E) | 0x80, 0))[1]
 
     def set_bitmask(self, address, mask):
         current = self.dev_read(address)
@@ -116,7 +129,7 @@ class RFID:
                 error = False
 
                 if n & irq & 0x01:
-                    print "E1"
+                    print("E1")
                     error = True
 
                 if command == self.mode_transrec:
@@ -136,7 +149,7 @@ class RFID:
                     for i in range(n):
                         back_data.append(self.dev_read(0x09))
             else:
-                print "E2"
+                print("E2")
                 error = True
 
         return (error, back_data, back_length)
@@ -260,6 +273,19 @@ class RFID:
 
     def stop_crypto(self):
         """Ends operations with Crypto1 usage."""
+        self.clear_bitmask(0x08, 0x08)
+        self.authed = False
+
+    def halt(self):
+        """Swich state to HALT"""
+
+        buf = []
+        buf.append(self.act_end)
+        buf.append(0)
+
+        crc = self.calculate_crc(buf)
+        self.clear_bitmask(0x08, 0x80)
+        self.card_write(self.mode_transrec, buf)
         self.clear_bitmask(0x08, 0x08)
         self.authed = False
 

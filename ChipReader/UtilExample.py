@@ -11,12 +11,12 @@ while True:
     #Request tag
     (error, data) = rdr.request()
     if not error:
-        print "\nDetected"
+        print ("\nDetected")
 
         (error, uid) = rdr.anticoll()
         if not error:
             #Print UID
-            print "Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3])
+            print ("Card read UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
 
             #Set tag as used in util. This will call RFID.select_tag(uid)
             util.set_tag(uid)

@@ -3,12 +3,12 @@ pi-rc522 consist of two Python classes for controlling an SPI RFID module "RC522
 
 Based on [MFRC522-python](https://github.com/mxgxw/MFRC522-python/blob/master/README.md).
 
-You'll need [**SPI-Py**](https://github.com/lthiery/SPI-Py).
+You'll need [**SPI-Py**]. Recently Raspbian switched to newer version of SPI driver. This caused compatibility issues with the outdated SPI-Py. Hence it's required to use a slightly modified version of SPI-Py. You can find it [here](https://github.com/mab5vot9us9a/SPI-Py).
 
 [MIFARE datasheet](http://www.nxp.com/documents/data_sheet/MF1S503x.pdf) can be useful.
 
 ## Sectors? Blocks?
-Classic 1K MIFARE tag has **16 sectors**, each contains **4 blocks**. Each block has 16 bytes. All this stuff is indexed - you must count from zero. The library uses "**block addresses**", which are positions of blocks - so block address 5 is second block of second sector, thus it's block 1 of sector 1 (indexes). Block addresses 0, 1, 2, 3 are all from first sector - sector 0. Block addresses 4, 5, 6, 7 are from second sector - sector 1 and so on. You should **not write** to first block - S0B0, because it contains manufacturer data. Each sector has it's **sector trailer**, which is the last block of this sector - block 3. This block contains keys and access bits for corresponding sector. For more info, look at page 10 of the datasheet. You can use [this](http://www.proxmark.org/forum/viewtopic.php?id=1408) useful utility to calculate access bits.
+Classic 1K MIFARE tag has **16 sectors**, each contains **4 blocks**. Each block has 16 bytes. All this stuff is indexed - you must count from zero. The library uses "**block addresses**", which are positions of blocks - so block address 5 is second block of second sector, thus it's block 1 of sector 1 (indexes). Block addresses 0, 1, 2, 3 are from the first sector - sector 0. Block addresses 4, 5, 6, 7 are from the second sector - sector 1, and so on. You should **not write** to first block - S0B0, because it contains manufacturer data. Each sector has it's **sector trailer**, which is located at it's last block - block 3. This block contains keys and access bits for corresponding sector. For more info, look at page 10 of the datasheet. You can use [this](http://www.proxmark.org/forum/viewtopic.php?id=1408) useful utility to calculate access bits.
 
 ## Connecting
 Connecting RC522 module to SPI is pretty easy. You can use [this neat website](http://pi.gadgetoid.com/pinout) for reference.
@@ -23,7 +23,7 @@ Connecting RC522 module to SPI is pretty easy. You can use [this neat website](h
 | RST            | 7         | 22               | GPIO25       |
 | 3.3V           | 8         | 1                | 3V3          |
 
-You can connect SDA pin also to CE1 (GPIO7, pin #26) and call the RFID constructor with *dev='/dev/spidev0.0'*
+You can also connect the SDA pin to CE1 (GPIO7, pin #26) and call the RFID constructor with *dev='/dev/spidev0.1'*
 and you can connect RST pin to any other free GPIO pin and call the constructor with *pin_rst=__BOARD numbering pin__*.
 
 __NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required. For SPI1/2, *pin_ce=__BOARD numbering pin__* is required.

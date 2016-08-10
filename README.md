@@ -1,9 +1,9 @@
 # Python RC522 library
-pi-rc522 consist of two Python classes for controlling an SPI RFID module "RC522" using Raspberry Pi. You can get this on AliExpress for $3.
+pi-rc522 consists of two Python classes for controlling an SPI RFID module "RC522" using Raspberry Pi. You can get this on AliExpress for $3.
 
 Based on [MFRC522-python](https://github.com/mxgxw/MFRC522-python/blob/master/README.md).
 
-You'll need [**SPI-Py**]. Recently Raspbian switched to newer version of SPI driver. This caused compatibility issues with the outdated SPI-Py. Hence it's required to use a slightly modified version of SPI-Py. You can find it [here](https://github.com/mab5vot9us9a/SPI-Py).
+You'll need **SPI-Py**. Recently Raspbian switched to newer version of SPI driver. This caused compatibility issues with the outdated SPI-Py. Hence it's required to use a slightly modified version of SPI-Py. You can find it [**here**](https://github.com/mab5vot9us9a/SPI-Py).
 
 [MIFARE datasheet](http://www.nxp.com/documents/data_sheet/MF1S503x.pdf) can be useful.
 

@@ -1,5 +1,3 @@
-import RFID
-
 
 class RFIDUtil(object):
     rfid = None

@@ -358,7 +358,7 @@ class RFID(object):
         If module is not present, returns None.
         """
         try:
-            import RFIDUtil
-            return RFIDUtil.RFIDUtil(self)
+            from .util import RFIDUtil
+            return RFIDUtil(self)
         except ImportError:
             return None

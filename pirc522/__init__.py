@@ -5,7 +5,7 @@ import spi as SPI
 import RPi.GPIO as GPIO
 
 
-__version__ = (1, 0, 0)
+__version__ = "1.1.0"
 
 
 class RFID(object):

@@ -1,4 +1,4 @@
-Copyright (c) 2016 Ondøej Ondryáš {ondryaso}
+Copyright (c) 2016 OndÅ™ej OndryÃ¡Å¡ {ondryaso}
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

@@ -5,11 +5,11 @@ from pirc522 import RFID
 
 rdr = RFID()
 util = rdr.util()
-#Set util debug to true - it will print what's going on
+# Set util debug to true - it will print what's going on
 util.debug = True
 
 while True:
-    #Request tag
+    # Request tag
     (error, data) = rdr.request()
     if not error:
         print("\nDetected")

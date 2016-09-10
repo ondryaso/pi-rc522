@@ -3,7 +3,18 @@ pi-rc522 consists of two Python classes for controlling an SPI RFID module "RC52
 
 Based on [MFRC522-python](https://github.com/mxgxw/MFRC522-python/blob/master/README.md).
 
-You'll also need to install the [**SPI-Py**](https://github.com/lthiery/SPI-Py) library.
+Install using pip:
+```
+pip install pi-rc522
+```
+
+Or get source code from Github:
+```
+git clone https://github.com/ondryaso/pi-rc522.git
+cd pi-rc522
+python setup.py install
+```
+You'll also need to install the [**SPI-Py**](https://github.com/lthiery/SPI-Py) and [**RPi.GPIO**](https://pypi.python.org/pypi/RPi.GPIO) libraries.
 
 [MIFARE datasheet](http://www.nxp.com/documents/data_sheet/MF1S503x.pdf) can be useful.
 

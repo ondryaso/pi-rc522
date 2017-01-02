@@ -20,6 +20,7 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+*.egg-info
 
 # Roslyn cache directories
 *.ide/

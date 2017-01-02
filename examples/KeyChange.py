@@ -20,6 +20,8 @@ signal.signal(signal.SIGINT, end_read)
 
 print("Starting")
 while run:
+    rdr.wait_for_tag()
+
     (error, data) = rdr.request()
     if not error:
         print("\nDetected: " + format(data, "02x"))

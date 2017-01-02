@@ -1,16 +1,16 @@
-import time
-import signal
+import threading
 
 import spidev
 import RPi.GPIO as GPIO
 
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 
 class RFID(object):
     pin_rst = 22
     pin_ce = 0
+    pin_irq = 18
 
     mode_idle = 0x00
     mode_auth = 0x0E
@@ -40,10 +40,13 @@ class RFID(object):
     length = 16
 
     authed = False
+    irq = threading.Event()
 
-    def __init__(self, bus=0, device=0, speed=1000000, pin_rst=22, pin_ce=0):
+    def __init__(self, bus=0, device=0, speed=1000000, pin_rst=22,
+            pin_ce=0, pin_irq=18):
         self.pin_rst = pin_rst
         self.pin_ce = pin_ce
+        self.pin_irq = pin_irq
 
         self.spi = spidev.SpiDev()
         self.spi.open(bus, device)
@@ -51,10 +54,16 @@ class RFID(object):
 
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(pin_rst, GPIO.OUT)
+        GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.add_event_detect(pin_irq, GPIO.FALLING,
+                callback=self.irq_callback)
         GPIO.output(pin_rst, 1)
         if pin_ce != 0:
             GPIO.setup(pin_ce, GPIO.OUT)
             GPIO.output(pin_ce, 1)
+        self.init()
+
+    def init(self):
         self.reset()
         self.dev_write(0x2A, 0x8D)
         self.dev_write(0x2B, 0x3E)
@@ -344,7 +353,27 @@ class RFID(object):
 
         return error
 
+    def irq_callback(self, pin):
+        self.irq.set()
+
+    def wait_for_tag(self):
+        # enable IRQ on detect
+        self.init()
+        self.irq.clear()
+        self.dev_write(0x04, 0x00)
+        self.dev_write(0x02, 0xA0)
+        # wait for it
+        waiting = True
+        while waiting:
+            self.dev_write(0x09, 0x26)
+            self.dev_write(0x01, 0x0C)
+            self.dev_write(0x0D, 0x87)
+            waiting = not self.irq.wait(0.1)
+        self.irq.clear()
+        self.init()
+
     def reset(self):
+        authed = False
         self.dev_write(0x01, self.mode_reset)
 
     def cleanup(self):

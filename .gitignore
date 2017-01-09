@@ -21,6 +21,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 *.egg-info
+dist/
 
 # Roslyn cache directories
 *.ide/

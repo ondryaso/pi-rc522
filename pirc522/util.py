@@ -19,7 +19,7 @@ class RFIDUtil(object):
 
     def sector_string(self, block_address):
         """
-        Returns sector and it's block representation of block address, eg.
+        Returns sector and it's block representation of block address, e.g.
         S01B03 for sector trailer in second sector.
         """
         return "S" + str((block_address - (block_address % 4)) / 4) + "B" + str(block_address % 4)

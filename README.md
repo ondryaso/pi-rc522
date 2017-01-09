@@ -43,7 +43,7 @@ __NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of
 The library is split to two classes - **RFID** and **RFIDUtil**. You can use only RFID, RFIDUtil just makes life a little bit better.
 You basically want to start with *while True* loop and "poll" the tag state. That's done using *request* method. Most of the methods
 return error state, which is simple boolean - True is error, False is not error. The *request* method returns True if tag is **not**
-present. If request is successful, you should call *anticoll* method. It runs anti-collision alghoritms and returns used tag UID, which
+present. If request is successful, you should call *anticoll* method. It runs anti-collision algorithms and returns used tag UID, which
 you'll use for *select_tag* method. Now you can do whatever you want. Important methods are documented. You can also look at the Read and KeyChange examples for RFIDUtil usage.
 
 ```python

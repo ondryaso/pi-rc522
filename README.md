@@ -30,12 +30,14 @@ Connecting RC522 module to SPI is pretty easy. You can use [this neat website](h
 | SCK            | 2         | 23               | GPIO11, SCKL |
 | MOSI           | 3         | 19               | GPIO10, MOSI |
 | MISO           | 4         | 21               | GPIO9, MISO  |
+| IRQ            | 5         | 18               | GPIO24       |
 | GND            | 6         | 6, 9, 20, 25     | Ground       |
 | RST            | 7         | 22               | GPIO25       |
-| 3.3V           | 8         | 1                | 3V3          |
+| 3.3V           | 8         | 1,17             | 3V3          |
 
 You can also connect the SDA pin to CE1 (GPIO7, pin #26) and call the RFID constructor with *bus=0, device=1*
 and you can connect RST pin to any other free GPIO pin and call the constructor with *pin_rst=__BOARD numbering pin__*.
+Furthermore, the IRQ pin is configurable by passing *pin_irq=__BOARD numbering pin__*.
 
 __NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required. For SPI1/2, *pin_ce=__BOARD numbering pin__* is required.
 
@@ -51,6 +53,7 @@ from pirc522 import RFID
 rdr = RFID()
 
 while True:
+  rdr.wait_for_tag()
   (error, tag_type) = rdr.request()
   if not error:
     print("Tag detected")
@@ -84,6 +87,9 @@ util = rdr.util()
 util.debug = True
 
 while True:
+    # Wait for tag
+    rdr.wait_for_tag()
+
     # Request tag
     (error, data) = rdr.request()
     if not error:
@@ -121,6 +127,4 @@ while True:
             util.dump()
             # We must stop crypto
             util.deauth()
-
-            time.sleep(1)
 ```

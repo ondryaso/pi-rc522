@@ -282,7 +282,7 @@ class RFID(object):
         self.authed = False
 
     def halt(self):
-        """Swich state to HALT"""
+        """Switch state to HALT"""
 
         buf = []
         buf.append(self.act_end)

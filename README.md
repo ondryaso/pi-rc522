@@ -14,7 +14,7 @@ git clone https://github.com/ondryaso/pi-rc522.git
 cd pi-rc522
 python setup.py install
 ```
-You'll also need to install the [**SPI-Py**](https://github.com/lthiery/SPI-Py) and [**RPi.GPIO**](https://pypi.python.org/pypi/RPi.GPIO) libraries.
+You'll also need to install the [**spidev**](https://pypi.python.org/pypi/spidev) and [**RPi.GPIO**](https://pypi.python.org/pypi/RPi.GPIO) libraries.
 
 [MIFARE datasheet](http://www.nxp.com/documents/data_sheet/MF1S503x.pdf) can be useful.
 
@@ -34,7 +34,7 @@ Connecting RC522 module to SPI is pretty easy. You can use [this neat website](h
 | RST            | 7         | 22               | GPIO25       |
 | 3.3V           | 8         | 1                | 3V3          |
 
-You can also connect the SDA pin to CE1 (GPIO7, pin #26) and call the RFID constructor with *dev='/dev/spidev0.1'*
+You can also connect the SDA pin to CE1 (GPIO7, pin #26) and call the RFID constructor with *bus=0, device=1*
 and you can connect RST pin to any other free GPIO pin and call the constructor with *pin_rst=__BOARD numbering pin__*.
 
 __NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required. For SPI1/2, *pin_ce=__BOARD numbering pin__* is required.

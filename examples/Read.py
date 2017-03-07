@@ -2,6 +2,7 @@
 
 import signal
 import time
+import sys
 
 from pirc522 import RFID
 
@@ -15,11 +16,14 @@ def end_read(signal,frame):
     print("\nCtrl+C captured, ending read.")
     run = False
     rdr.cleanup()
+    sys.exit()
 
 signal.signal(signal.SIGINT, end_read)
 
 print("Starting")
 while run:
+    rdr.wait_for_tag()
+
     (error, data) = rdr.request()
     if not error:
         print("\nDetected: " + format(data, "02x"))

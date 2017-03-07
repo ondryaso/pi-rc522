@@ -11,6 +11,9 @@ util = rdr.util()
 util.debug = True
 
 while True:
+    # Wait for tag
+    rdr.wait_for_tag()
+
     # Request tag
     (error, data) = rdr.request()
     if not error:

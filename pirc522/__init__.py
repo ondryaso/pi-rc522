@@ -4,7 +4,7 @@ import spidev
 import RPi.GPIO as GPIO
 
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 
 
 class RFID(object):
@@ -43,7 +43,7 @@ class RFID(object):
     irq = threading.Event()
 
     def __init__(self, bus=0, device=0, speed=1000000, pin_rst=22,
-            pin_ce=0, pin_irq=18):
+            pin_ce=0, pin_irq=18, pin_mode=GPIO.BOARD):
         self.pin_rst = pin_rst
         self.pin_ce = pin_ce
         self.pin_irq = pin_irq
@@ -52,7 +52,7 @@ class RFID(object):
         self.spi.open(bus, device)
         self.spi.max_speed_hz = speed
 
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(pin_mode)
         GPIO.setup(pin_rst, GPIO.OUT)
         GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(pin_irq, GPIO.FALLING,

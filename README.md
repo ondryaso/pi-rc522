@@ -41,6 +41,8 @@ Furthermore, the IRQ pin is configurable by passing *pin_irq=__BOARD numbering p
 
 __NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required. For SPI1/2, *pin_ce=__BOARD numbering pin__* is required.
 
+You may change BOARD pinout to BCM py passing *pin_mode=RPi.GPIO.BCM*. Please note, that you then have to define all pins (irq+rst, ce if neccessary). Otherwise they would default to perhaps wrong pins (rst to pin 15/GPIO22, irq to pin 12/GPIO18).
+
 ## Usage
 The library is split to two classes - **RFID** and **RFIDUtil**. You can use only RFID, RFIDUtil just makes life a little bit better.
 You basically want to start with *while True* loop and "poll" the tag state. That's done using *request* method. Most of the methods

@@ -48,7 +48,7 @@ class RFID(object):
         self.spi.max_speed_hz = speed
 
         GPIO.setmode(pin_mode)
-        if pin_rst is None:
+        if pin_rst is not None:
             GPIO.setup(pin_rst, GPIO.OUT)
             GPIO.output(pin_rst, 1)
         GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)

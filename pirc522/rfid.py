@@ -34,6 +34,8 @@ class RFID(object):
     reg_tx_control = 0x14
     length = 16
 
+    antenna_gain = 0x04
+
     authed = False
     irq = threading.Event()
 
@@ -67,6 +69,7 @@ class RFID(object):
         self.dev_write(0x2C, 0)
         self.dev_write(0x15, 0x40)
         self.dev_write(0x11, 0x3D)
+        self.dev_write(0x26, (self.antenna_gain<<4))
         self.set_antenna(True)
 
     def spi_transfer(self, data):
@@ -98,6 +101,13 @@ class RFID(object):
                 self.set_bitmask(self.reg_tx_control, 0x03)
         else:
             self.clear_bitmask(self.reg_tx_control, 0x03)
+
+    def set_antenna_gain(self, gain):
+        """
+        Sets antenna gain from a value from 0 to 7.
+        """
+        if 0 <= gain <= 7:
+            self.antenna_gain = gain
 
     def card_write(self, command, data):
         back_data = []

@@ -135,6 +135,20 @@ class RFIDUtil(object):
         else:
             print("Error on " + self.sector_string(block_address))
 
+    def get_access_bits(self, c1, c2, c3):
+        """
+        Calculates the access bits for a sector trailer based on their access conditions
+        c1, c2, c3, c4 are 4 items tuples containing the values for each block
+        returns the 3 bytes for the sector trailer
+        """
+        byte_6 = ((~c2[3] & 1) << 7) + ((~c2[2] & 1) << 6) + ((~c2[1] & 1) << 5) + ((~c2[0] & 1) << 4) + \
+                 ((~c1[3] & 1) << 3) + ((~c1[2] & 1) << 2) + ((~c1[1] & 1) << 1) + (~c1[0] & 1)
+        byte_7 = ((c1[3] & 1) << 7) + ((c1[2] & 1) << 6) + ((c1[1] & 1) << 5) + ((c1[0] & 1) << 4) + \
+                 ((~c3[3] & 1) << 3) + ((~c3[2] & 1) << 2) + ((~c3[1] & 1) << 1) + (~c3[0] & 1)
+        byte_8 = ((c3[3] & 1) << 7) + ((c3[2] & 1) << 6) + ((c3[1] & 1) << 5) + ((c3[0] & 1) << 4) + \
+                 ((c2[3] & 1) << 3) + ((c2[2] & 1) << 2) + ((c2[1] & 1) << 1) + (c2[0] & 1)
+        return byte_6, byte_7, byte_8
+
     def dump(self, sectors=16):
         for i in range(sectors * 4):
             self.read_out(i)

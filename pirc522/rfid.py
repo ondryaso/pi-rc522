@@ -1,6 +1,25 @@
 import threading
-import spidev
-import RPi.GPIO as GPIO
+
+RASPBERRY = object()
+BEAGLEBONE = object()
+board = RASPBERRY
+try:
+    # Try with Raspberry PI imports first
+    import spidev
+    import RPi.GPIO as GPIO
+    SPIClass = spidev.SpiDev
+    def_pin_rst = 22
+    def_pin_irq = 18
+    def_pin_mode = GPIO.BOARD
+except ImportError:
+    # If they failed, try with Beaglebone
+    import Adafruit_BBIO.SPI as SPI
+    import Adafruit_BBIO.GPIO as GPIO
+    SPIClass = SPI.SPI
+    board = BEAGLEBONE
+    def_pin_rst = "P9_23"
+    def_pin_irq = "P9_15"
+    def_pin_mode = None
 
 class RFID(object):
     pin_rst = 22
@@ -39,17 +58,22 @@ class RFID(object):
     authed = False
     irq = threading.Event()
 
-    def __init__(self, bus=0, device=0, speed=1000000, pin_rst=22,
-            pin_ce=0, pin_irq=18, pin_mode=GPIO.BOARD):
+    def __init__(self, bus=0, device=0, speed=1000000, pin_rst=def_pin_rst,
+            pin_ce=0, pin_irq=def_pin_irq, pin_mode = def_pin_mode):
         self.pin_rst = pin_rst
         self.pin_ce = pin_ce
         self.pin_irq = pin_irq
 
-        self.spi = spidev.SpiDev()
+        self.spi = SPIClass()
         self.spi.open(bus, device)
-        self.spi.max_speed_hz = speed
+        if board == RASPBERRY:
+            self.spi.max_speed_hz = speed
+        else:
+            self.spi.mode = 0
+            self.spi.msh = speed
 
-        GPIO.setmode(pin_mode)
+        if pin_mode is not None:
+            GPIO.setmode(pin_mode)
         if pin_rst != 0:
             GPIO.setup(pin_rst, GPIO.OUT)
             GPIO.output(pin_rst, 1)

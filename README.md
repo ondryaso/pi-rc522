@@ -1,5 +1,5 @@
 # Python RC522 library
-pi-rc522 consists of two Python classes for controlling an SPI RFID module "RC522" using Raspberry Pi. You can get this module on AliExpress or Ebay for $3.
+pi-rc522 consists of two Python classes for controlling an SPI RFID module "RC522" using Raspberry Pi or Beaglebone Black. You can get this module on AliExpress or Ebay for $3.
 
 Based on [MFRC522-python](https://github.com/mxgxw/MFRC522-python/blob/master/README.md).
 
@@ -14,7 +14,7 @@ git clone https://github.com/ondryaso/pi-rc522.git
 cd pi-rc522
 python setup.py install
 ```
-You'll also need to install the [**spidev**](https://pypi.python.org/pypi/spidev) and [**RPi.GPIO**](https://pypi.python.org/pypi/RPi.GPIO) libraries.
+You'll also need to install the [**spidev**](https://pypi.python.org/pypi/spidev) and [**RPi.GPIO**](https://pypi.python.org/pypi/RPi.GPIO) libraries on Raspberry PI, and [**Adafruit_BBIO**](https://github.com/adafruit/adafruit-beaglebone-io-python) on Beaglebone Black (which should be installed by default).
 
 [MIFARE datasheet](http://www.nxp.com/documents/data_sheet/MF1S503x.pdf) can be useful.
 
@@ -24,22 +24,26 @@ Classic 1K MIFARE tag has **16 sectors**, each contains **4 blocks**. Each block
 ## Connecting
 Connecting RC522 module to SPI is pretty easy. You can use [this neat website](http://pi.gadgetoid.com/pinout) for reference.
 
-| Board pin name | Board pin | Physical RPi pin | RPi pin name |
-|----------------|-----------|------------------|--------------|
-| SDA            | 1         | 24               | GPIO8, CE0   |
-| SCK            | 2         | 23               | GPIO11, SCKL |
-| MOSI           | 3         | 19               | GPIO10, MOSI |
-| MISO           | 4         | 21               | GPIO9, MISO  |
-| IRQ            | 5         | 18               | GPIO24       |
-| GND            | 6         | 6, 9, 20, 25     | Ground       |
-| RST            | 7         | 22               | GPIO25       |
-| 3.3V           | 8         | 1,17             | 3V3          |
+| Board pin name | Board pin | Physical RPi pin | RPi pin name | Beaglebone Black pin name |
+|----------------|-----------|------------------|--------------| --------------------------|
+| SDA            | 1         | 24               | GPIO8, CE0   | P9\_17, SPI0\_CS0         |
+| SCK            | 2         | 23               | GPIO11, SCKL | P9\_22, SPI0\_SCLK        |
+| MOSI           | 3         | 19               | GPIO10, MOSI | P9\_18, SPI0\_D1          |
+| MISO           | 4         | 21               | GPIO9, MISO  | P9\_21, SPI0\_D0          |
+| IRQ            | 5         | 18               | GPIO24       | P9\_15, GPIO\_48          |
+| GND            | 6         | 6, 9, 20, 25     | Ground       | Ground                    |
+| RST            | 7         | 22               | GPIO25       | P9\_23, GPIO\_49          |
+| 3.3V           | 8         | 1,17             | 3V3          | VDD\_3V3                  |
 
 You can also connect the SDA pin to CE1 (GPIO7, pin #26) and call the RFID constructor with *bus=0, device=1*
 and you can connect RST pin to any other free GPIO pin and call the constructor with *pin_rst=__BOARD numbering pin__*.
 Furthermore, the IRQ pin is configurable by passing *pin_irq=__BOARD numbering pin__*.
 
 __NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of SPI0. Kernel 4.4.x or higher and *dtoverlay* configuration is required. For SPI1/2, *pin_ce=__BOARD numbering pin__* is required.
+
+__NOTE:__ On Beaglebone Black, use pin names (e.g. `"P9_17"`).
+
+__NOTE:__ On Beaglebone Black, generally you have to enable the SPI for the spidev device to show up; you can enable SPI0 by doing `echo BB-SPIDEV0 > /sys/devices/bone_capemgr.9/slots`. SPI1 is available *only if you disable HDMI*.
 
 You may change BOARD pinout to BCM py passing *pin_mode=RPi.GPIO.BCM*. Please note, that you then have to define all pins (irq+rst, ce if neccessary). Otherwise they would default to perhaps wrong pins (rst to pin 15/GPIO22, irq to pin 12/GPIO18).
 

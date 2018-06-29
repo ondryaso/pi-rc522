@@ -79,6 +79,40 @@ while True:
 rdr.cleanup()
 ```
 
+## Multi_Usage
+Polling the tag state in multi RFID Module
+*Must* change the ce port the other normal GPIOs
+```python
+# -*- coding: utf-8 -*-
+
+from pirc522 import RFID
+
+rdr = RFID()
+
+flag = 0;
+rdr.init_multi_ce(pin_ce = [13,15])
+try:
+    while True:
+        if (flag == 0):
+            flag = 1
+            rdr.switch_init(ce_id=0)
+        else:
+            flag = 0
+            rdr.switch_init(ce_id=1)
+        (error, tag_type) = rdr.request()
+        if not error:
+            print("Tag detected")
+            (error, uid) = rdr.anticoll()
+            if not error:
+                print("UID: " + str(uid))
+
+except Exception, e:
+# Calls GPIO cleanup
+    print(str(e))
+    rdr.cleanup()
+
+```
+
 ### Util usage
 **RFIDUtil** contains a few useful methods for dealing with tags.
 

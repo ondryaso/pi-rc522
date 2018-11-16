@@ -1,30 +1,12 @@
 import threading
-
-RASPBERRY = object()
-BEAGLEBONE = object()
-board = RASPBERRY
-try:
-    # Try with Raspberry PI imports first
-    import spidev
-    import RPi.GPIO as GPIO
-    SPIClass = spidev.SpiDev
-    def_pin_rst = 22
-    def_pin_irq = 18
-    def_pin_mode = GPIO.BOARD
-except ImportError:
-    # If they failed, try with Beaglebone
-    import Adafruit_BBIO.SPI as SPI
-    import Adafruit_BBIO.GPIO as GPIO
-    SPIClass = SPI.SPI
-    board = BEAGLEBONE
-    def_pin_rst = "P9_23"
-    def_pin_irq = "P9_15"
-    def_pin_mode = None
+import spidev
+import RPi.GPIO as GPIO
 
 class RFID(object):
     pin_rst = 22
     pin_ce = 0
     pin_irq = 18
+    pin_ce_list = [13,15]
 
     mode_idle = 0x00
     mode_auth = 0x0E
@@ -53,38 +35,47 @@ class RFID(object):
     reg_tx_control = 0x14
     length = 16
 
-    antenna_gain = 0x04
-
     authed = False
     irq = threading.Event()
 
-    def __init__(self, bus=0, device=0, speed=1000000, pin_rst=def_pin_rst,
-            pin_ce=0, pin_irq=def_pin_irq, pin_mode = def_pin_mode):
+    def __init__(self, bus=0, device=0, speed=1000000, pin_rst=22,
+            pin_ce=0, pin_irq=18, pin_mode=GPIO.BOARD):
         self.pin_rst = pin_rst
         self.pin_ce = pin_ce
         self.pin_irq = pin_irq
 
-        self.spi = SPIClass()
+        self.spi = spidev.SpiDev()
         self.spi.open(bus, device)
-        if board == RASPBERRY:
-            self.spi.max_speed_hz = speed
-        else:
-            self.spi.mode = 0
-            self.spi.msh = speed
+        self.spi.max_speed_hz = speed
 
-        if pin_mode is not None:
-            GPIO.setmode(pin_mode)
-        if pin_rst != 0:
-            GPIO.setup(pin_rst, GPIO.OUT)
-            GPIO.output(pin_rst, 1)
+        GPIO.setmode(pin_mode)
+        GPIO.setup(pin_rst, GPIO.OUT)
         GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(pin_irq, GPIO.FALLING,
                 callback=self.irq_callback)
+        GPIO.output(pin_rst, 1)
         if pin_ce != 0:
             GPIO.setup(pin_ce, GPIO.OUT)
             GPIO.output(pin_ce, 1)
         self.init()
+    
+    def switch_init(self, pin_ce=[], ce_id = 0,pin_mode=GPIO.BOARD):
+        GPIO.output(self.pin_rst, 0)
+        GPIO.output(self.pin_rst, 1)
+        self.pin_ce = self.pin_ce_list[ce_id]
+        GPIO.output(self.pin_ce,0)
+        GPIO.output(self.pin_rst, 0)
+        GPIO.output(self.pin_rst, 1)
+        self.init()
 
+    def init_multi_ce(self, pin_ce =[],pin_mode=GPIO.BOARD):
+        self.pin_ce_list = pin_ce
+        GPIO.setmode(pin_mode)
+        for pin in self.pin_ce_list:
+            GPIO.setup(pin,GPIO.OUT)
+            GPIO.output(pin,1)
+
+ 
     def init(self):
         self.reset()
         self.dev_write(0x2A, 0x8D)
@@ -93,7 +84,6 @@ class RFID(object):
         self.dev_write(0x2C, 0)
         self.dev_write(0x15, 0x40)
         self.dev_write(0x11, 0x3D)
-        self.dev_write(0x26, (self.antenna_gain<<4))
         self.set_antenna(True)
 
     def spi_transfer(self, data):
@@ -125,13 +115,6 @@ class RFID(object):
                 self.set_bitmask(self.reg_tx_control, 0x03)
         else:
             self.clear_bitmask(self.reg_tx_control, 0x03)
-
-    def set_antenna_gain(self, gain):
-        """
-        Sets antenna gain from a value from 0 to 7.
-        """
-        if 0 <= gain <= 7:
-            self.antenna_gain = gain
 
     def card_write(self, command, data):
         back_data = []

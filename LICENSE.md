@@ -1,4 +1,5 @@
 Copyright (c) 2016 Ondřej Ondryáš {ondryaso}
+Copyright (c) 2018 YUTI KUO
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

@@ -55,6 +55,19 @@ class RFID(object):
 
     antenna_gain = 0x04
 
+/*antenna_gain
+  defines the receiver's signal voltage gain factor:
+  000 18 dB HEX = 0x00
+  001 23 dB HEX = 0x01
+  010 18 dB HEX = 0x02  
+  011 23 dB HEX = 0x03
+  100 33 dB HEX = 0x04
+  101 38 dB HEX = 0x05
+  110 43 dB HEX = 0x06
+  111 48 dB HEX = 0x07
+  3 to 0 reserved - reserved for future use
+*/
+
     authed = False
     irq = threading.Event()
 

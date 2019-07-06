@@ -408,6 +408,11 @@ class RFID(object):
         # wait for it
         waiting = True
         while waiting:
+            self.init()
+            #self.irq.clear()
+            self.dev_write(0x04, 0x00)
+            self.dev_write(0x02, 0xA0)
+
             self.dev_write(0x09, 0x26)
             self.dev_write(0x01, 0x0C)
             self.dev_write(0x0D, 0x87)

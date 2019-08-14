@@ -47,6 +47,8 @@ class RFID(object):
     act_reqidl = 0x26
     act_reqall = 0x52
     act_anticl = 0x93
+    act_anticl2 = 0x95
+    act_anticl3 = 0x97
     act_select = 0x93
     act_end = 0x50
 
@@ -241,6 +243,33 @@ class RFID(object):
 
         self.dev_write(0x0D, 0x00)
         serial_number.append(self.act_anticl)
+        serial_number.append(0x20)
+
+        (error, back_data, back_bits) = self.card_write(self.mode_transrec, serial_number)
+        if not error:
+            if len(back_data) == 5:
+                for i in range(4):
+                    serial_number_check = serial_number_check ^ back_data[i]
+
+                if serial_number_check != back_data[4]:
+                    error = True
+            else:
+                error = True
+
+        return (error, back_data)
+
+    def anticoll2(self):
+        """
+        Anti-collision detection.
+        Returns tuple of (error state, tag ID).
+        """
+        back_data = []
+        serial_number = []
+
+        serial_number_check = 0
+
+        self.dev_write(0x0D, 0x00)
+        serial_number.append(self.act_anticl2)
         serial_number.append(0x20)
 
         (error, back_data, back_bits) = self.card_write(self.mode_transrec, serial_number)

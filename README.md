@@ -79,6 +79,37 @@ while True:
 rdr.cleanup()
 ```
 
+To retrieve tag UID longer than 4 byte you can do the following:
+
+```python
+import RFID
+
+def detect_uid(reader):
+  (error, tag_type) = reader.request()
+  if error:
+    return None
+
+  (error, uid) = reader.anticoll()
+  if error:
+    return None
+
+  if uid[0] != 0x88:
+    return uid[0:4]
+
+  error = reader.select_tag(uid)
+  if error:
+    return None
+
+  (error, uid2) = reader.anticoll2()
+  if error:
+    return None
+
+  return [uid[1], uid[2], uid[3], uid2[0], uid2[1], uid2[2], uid2[3]]
+
+reader = pirc522.RFID()
+print("UID: " + str(detect_uid(reader)))
+```
+
 ### Util usage
 **RFIDUtil** contains a few useful methods for dealing with tags.
 

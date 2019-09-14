@@ -225,6 +225,43 @@ class RFID(object):
 
         return (error, back_data, back_length)
 
+    def read_id(self, as_number = False):
+        """
+        Obtains the id (4 or 7 bytes) of a tag (if present)
+        Return None on error or not present, otherwise returns tag ID
+
+        The as_number argument can be used to return the UID as an integer. It
+        defaults to a list like the rest of the API.
+        """
+
+        # Check if there is anything there
+        error, tag_type = self.request()
+        if error:
+            return None
+
+        # Get the UID
+        error, uid = self.anticoll()
+        if error:
+            return None
+
+        # Do we have an incomplete UID?!
+        if uid[0] != 0x88:
+            return uid[0:4]
+
+        # Activate the tag with the incomplete UID
+        error = self.select_tag(uid)
+        if error:
+            return None
+
+        # Get the remaining bytes
+        error, uid2 = self.anticoll2()
+        if error:
+            return None
+
+        # Build the final UID without checksums
+        real_uid = uid[1:-1] + uid2[:-1]
+        return int.from_bytes(real_uid, 'big') if as_number else real_uid
+
     def request(self, req_mode=0x26):
         """
         Requests for tag.

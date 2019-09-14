@@ -10,7 +10,7 @@ pip install pi-rc522
 
 Or get source code from Github:
 ```
-git clone https://github.com/ondryaso/pi-rc522.git
+git clone https://github.com/kevinvalk/pi-rc522.git
 cd pi-rc522
 python setup.py install
 ```
@@ -44,6 +44,8 @@ __NOTE:__ For RPi A+/B+/2/3 with 40 pin connector, SPI1/2 is available on top of
 __NOTE:__ On Beaglebone Black, use pin names (e.g. `"P9_17"`).
 
 __NOTE:__ On Beaglebone Black, generally you have to enable the SPI for the spidev device to show up; you can enable SPI0 by doing `echo BB-SPIDEV0 > /sys/devices/bone_capemgr.9/slots`. SPI1 is available *only if you disable HDMI*.
+
+__NOTE:__ If you are not using IRQ, you can pass `pin_irq = None` to the constructor.
 
 You may change BOARD pinout to BCM py passing *pin_mode=RPi.GPIO.BCM*. Please note, that you then have to define all pins (irq+rst, ce if neccessary). Otherwise they would default to perhaps wrong pins (rst to pin 15/GPIO22, irq to pin 12/GPIO18).
 
@@ -79,35 +81,20 @@ while True:
 rdr.cleanup()
 ```
 
-To retrieve tag UID longer than 4 byte you can do the following:
+To retrieve tag UID in either 4 or 7 byte form, you can use:
 
 ```python
-import RFID
+from pirc522 import RFID
+rdr = RFID()
 
-def detect_uid(reader):
-  (error, tag_type) = reader.request()
-  if error:
-    return None
+while True:
+  rdr.wait_for_tag()
+  uid = rdr.read_id(as_number = True)
+  if uid is not None:
+    print(f'UID: {uid:X}')
 
-  (error, uid) = reader.anticoll()
-  if error:
-    return None
-
-  if uid[0] != 0x88:
-    return uid[0:4]
-
-  error = reader.select_tag(uid)
-  if error:
-    return None
-
-  (error, uid2) = reader.anticoll2()
-  if error:
-    return None
-
-  return [uid[1], uid[2], uid[3], uid2[0], uid2[1], uid2[2], uid2[3]]
-
-reader = pirc522.RFID()
-print("UID: " + str(detect_uid(reader)))
+# Calls GPIO cleanup
+reader.cleanup()
 ```
 
 ### Util usage

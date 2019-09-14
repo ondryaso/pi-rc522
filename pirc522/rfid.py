@@ -57,23 +57,24 @@ class RFID(object):
 
     antenna_gain = 0x04
 
-#antenna_gain
-#  defines the receiver's signal voltage gain factor:
-#  000 18 dB HEX = 0x00
-#  001 23 dB HEX = 0x01
-#  010 18 dB HEX = 0x02  
-#  011 23 dB HEX = 0x03
-#  100 33 dB HEX = 0x04
-#  101 38 dB HEX = 0x05
-#  110 43 dB HEX = 0x06
-#  111 48 dB HEX = 0x07
-# 3 to 0 reserved - reserved for future use
+    # antenna_gain
+    #  defines the receiver's signal voltage gain factor:
+    #  000 18 dB HEX = 0x00
+    #  001 23 dB HEX = 0x01
+    #  010 18 dB HEX = 0x02
+    #  011 23 dB HEX = 0x03
+    #  100 33 dB HEX = 0x04
+    #  101 38 dB HEX = 0x05
+    #  110 43 dB HEX = 0x06
+    #  111 48 dB HEX = 0x07
+    # 3 to 0 reserved - reserved for future use
 
     authed = False
     irq = threading.Event()
 
     def __init__(self, bus=0, device=0, speed=1000000, pin_rst=def_pin_rst,
-            pin_ce=0, pin_irq=def_pin_irq, pin_mode = def_pin_mode):
+            pin_ce=0, pin_irq=def_pin_irq, pin_mode=def_pin_mode,
+            antenna_gain=None):
         self.pin_rst = pin_rst
         self.pin_ce = pin_ce
         self.pin_irq = pin_irq
@@ -91,9 +92,17 @@ class RFID(object):
         if pin_rst != 0:
             GPIO.setup(pin_rst, GPIO.OUT)
             GPIO.output(pin_rst, 1)
-        GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(pin_irq, GPIO.FALLING,
-                callback=self.irq_callback)
+
+        # Ignore IRQ if we did not wire this
+        if self.pin_irq is not None:
+            GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(pin_irq, GPIO.FALLING,
+                    callback=self.irq_callback)
+
+        # Change the antenna gain
+        if antenna_gain is not None:
+            self.antenna_gain = antenna_gain
+
         if pin_ce != 0:
             GPIO.setup(pin_ce, GPIO.OUT)
             GPIO.output(pin_ce, 1)
@@ -107,7 +116,7 @@ class RFID(object):
         self.dev_write(0x2C, 0)
         self.dev_write(0x15, 0x40)
         self.dev_write(0x11, 0x3D)
-        self.dev_write(0x26, (self.antenna_gain<<4))
+        self.set_antenna_gain(self.antenna_gain)
         self.set_antenna(True)
 
     def spi_transfer(self, data):
@@ -146,6 +155,9 @@ class RFID(object):
         """
         if 0 <= gain <= 7:
             self.antenna_gain = gain
+            self.dev_write(0x26, (self.antenna_gain<<4))
+        else:
+            raise ValueError('Antenna gain has to be in the range 0...7')
 
     def card_write(self, command, data):
         back_data = []
@@ -190,7 +202,6 @@ class RFID(object):
                 error = False
 
                 if n & irq & 0x01:
-                    print("E1")
                     error = True
 
                 if command == self.mode_transrec:
@@ -210,7 +221,6 @@ class RFID(object):
                     for i in range(n):
                         back_data.append(self.dev_read(0x09))
             else:
-                print("E2")
                 error = True
 
         return (error, back_data, back_length)
@@ -428,6 +438,9 @@ class RFID(object):
         self.irq.set()
 
     def wait_for_tag(self):
+        if self.pin_irq is None:
+            raise NotImplementedError('Waiting not implemented if IRQ is not used')
+
         # enable IRQ on detect
         self.init()
         self.irq.clear()

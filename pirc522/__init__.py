@@ -1,5 +1,3 @@
-__version__ = "2.3.0"
-
 try:
     from .rfid import RFID
     from .util import RFIDUtil

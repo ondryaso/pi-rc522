@@ -246,7 +246,7 @@ class RFID(object):
 
         # Do we have an incomplete UID?!
         if uid[0] != 0x88:
-            return uid[0:4]
+            return int.from_bytes(uid[0:4], 'big') if as_number else uid[0:4]
 
         # Activate the tag with the incomplete UID
         error = self.select_tag(uid)

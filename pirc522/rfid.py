@@ -1,4 +1,5 @@
 import threading
+import time
 
 RASPBERRY = object()
 BEAGLEBONE = object()
@@ -398,15 +399,16 @@ class RFID(object):
     def irq_callback(self, pin):
         self.irq.set()
 
-    def wait_for_tag(self):
+    def wait_for_tag(self, timeout=0):
         # enable IRQ on detect
+        start_time = time.time()
         self.init()
         self.irq.clear()
         self.dev_write(0x04, 0x00)
         self.dev_write(0x02, 0xA0)
         # wait for it
         waiting = True
-        while waiting:
+        while waiting and timeout > 0 and (time.time() - start_time) < timeout:
             self.init()
             #self.irq.clear()
             self.dev_write(0x04, 0x00)

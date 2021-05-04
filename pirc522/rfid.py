@@ -408,7 +408,7 @@ class RFID(object):
         self.dev_write(0x02, 0xA0)
         # wait for it
         waiting = True
-        while waiting and timeout > 0 and (time.time() - start_time) < timeout:
+        while waiting and (timeout == 0 or ((time.time() - start_time) < timeout)):
             self.init()
             #self.irq.clear()
             self.dev_write(0x04, 0x00)

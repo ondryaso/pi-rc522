@@ -5,11 +5,20 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
+
+def get_version():
+    with open('pirc522/version.py','r') as version_file:
+        for line in version_file:
+            if line.startswith('__version__'):
+                version = line.split('=')[1].strip().strip('"')
+                return version
+
+
 setup(
     name='pi-rc522',
     packages=find_packages(),
     include_package_data=True,
-    version='2.3.1',
+    version=get_version(),
     description='Raspberry Pi Python library for SPI RFID RC522 module.',
     long_description='Raspberry Pi Python library for SPI RFID RC522 module.',
     classifiers=[

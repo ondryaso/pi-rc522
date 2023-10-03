@@ -1,4 +1,8 @@
+import logging
 import threading
+import time
+
+logger = logging.getLogger(__name__)
 
 RASPBERRY = object()
 BEAGLEBONE = object()
@@ -202,6 +206,7 @@ class RFID(object):
                 error = False
 
                 if n & irq & 0x01:
+                    logger.warning("Error E1")
                     error = True
 
                 if command == self.mode_transrec:
@@ -221,6 +226,7 @@ class RFID(object):
                     for i in range(n):
                         back_data.append(self.dev_read(0x09))
             else:
+                logger.warning("Error E2")
                 error = True
 
         return (error, back_data, back_length)
@@ -474,18 +480,18 @@ class RFID(object):
     def irq_callback(self, pin):
         self.irq.set()
 
-    def wait_for_tag(self):
+    def wait_for_tag(self, timeout=0):
         if self.pin_irq is None:
             raise NotImplementedError('Waiting not implemented if IRQ is not used')
-
         # enable IRQ on detect
         self.init()
         self.irq.clear()
         self.dev_write(0x04, 0x00)
         self.dev_write(0x02, 0xA0)
         # wait for it
+        start_time = time.time()
         waiting = True
-        while waiting:
+        while waiting and (timeout == 0 or ((time.time() - start_time) < timeout)):
             self.init()
             #self.irq.clear()
             self.dev_write(0x04, 0x00)

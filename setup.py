@@ -5,17 +5,18 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-    'pirc522')))
-
-from pirc522 import __version__  # flake8: noqa
-sys.path.pop(0)
+def get_version():
+    with open('pirc522/version.py','r') as version_file:
+        for line in version_file:
+            if line.startswith('__version__'):
+                version = line.split('=')[1].strip().strip('"')
+                return version
 
 setup(
     name='pi-rc522',
     packages=find_packages(),
     include_package_data=True,
-    version=__version__,
+    version=get_version(),
     description='Raspberry Pi Python library for SPI RFID RC522 module.',
     long_description='Raspberry Pi Python library for SPI RFID RC522 module.',
     classifiers=[

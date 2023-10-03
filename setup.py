@@ -5,12 +5,14 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
+
 def get_version():
     with open('pirc522/version.py','r') as version_file:
         for line in version_file:
             if line.startswith('__version__'):
                 version = line.split('=')[1].strip().strip('"')
                 return version
+
 
 setup(
     name='pi-rc522',
@@ -32,7 +34,7 @@ setup(
     ],
     author='ondryaso',
     author_email='ondryaso@ondryaso.eu',
-    url='https://github.com/ondryaso/pi-rc522',
+    url='https://github.com/kevinvalk/pi-rc522',
     license='MIT',
     install_requires=['spidev', 'RPi.GPIO'],
 )

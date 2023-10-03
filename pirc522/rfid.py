@@ -51,6 +51,8 @@ class RFID(object):
     act_reqidl = 0x26
     act_reqall = 0x52
     act_anticl = 0x93
+    act_anticl2 = 0x95
+    act_anticl3 = 0x97
     act_select = 0x93
     act_end = 0x50
 
@@ -59,23 +61,24 @@ class RFID(object):
 
     antenna_gain = 0x04
 
-#antenna_gain
-#  defines the receiver's signal voltage gain factor:
-#  000 18 dB HEX = 0x00
-#  001 23 dB HEX = 0x01
-#  010 18 dB HEX = 0x02  
-#  011 23 dB HEX = 0x03
-#  100 33 dB HEX = 0x04
-#  101 38 dB HEX = 0x05
-#  110 43 dB HEX = 0x06
-#  111 48 dB HEX = 0x07
-# 3 to 0 reserved - reserved for future use
+    # antenna_gain
+    #  defines the receiver's signal voltage gain factor:
+    #  000 18 dB HEX = 0x00
+    #  001 23 dB HEX = 0x01
+    #  010 18 dB HEX = 0x02
+    #  011 23 dB HEX = 0x03
+    #  100 33 dB HEX = 0x04
+    #  101 38 dB HEX = 0x05
+    #  110 43 dB HEX = 0x06
+    #  111 48 dB HEX = 0x07
+    # 3 to 0 reserved - reserved for future use
 
     authed = False
     irq = threading.Event()
 
     def __init__(self, bus=0, device=0, speed=1000000, pin_rst=def_pin_rst,
-            pin_ce=0, pin_irq=def_pin_irq, pin_mode = def_pin_mode):
+            pin_ce=0, pin_irq=def_pin_irq, pin_mode=def_pin_mode,
+            antenna_gain=None):
         self.pin_rst = pin_rst
         self.pin_ce = pin_ce
         self.pin_irq = pin_irq
@@ -93,9 +96,17 @@ class RFID(object):
         if pin_rst != 0:
             GPIO.setup(pin_rst, GPIO.OUT)
             GPIO.output(pin_rst, 1)
-        GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(pin_irq, GPIO.FALLING,
-                callback=self.irq_callback)
+
+        # Ignore IRQ if we did not wire this
+        if self.pin_irq is not None:
+            GPIO.setup(pin_irq, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(pin_irq, GPIO.FALLING,
+                    callback=self.irq_callback)
+
+        # Change the antenna gain
+        if antenna_gain is not None:
+            self.antenna_gain = antenna_gain
+
         if pin_ce != 0:
             GPIO.setup(pin_ce, GPIO.OUT)
             GPIO.output(pin_ce, 1)
@@ -109,7 +120,7 @@ class RFID(object):
         self.dev_write(0x2C, 0)
         self.dev_write(0x15, 0x40)
         self.dev_write(0x11, 0x3D)
-        self.dev_write(0x26, (self.antenna_gain<<4))
+        self.set_antenna_gain(self.antenna_gain)
         self.set_antenna(True)
 
     def spi_transfer(self, data):
@@ -148,6 +159,9 @@ class RFID(object):
         """
         if 0 <= gain <= 7:
             self.antenna_gain = gain
+            self.dev_write(0x26, (self.antenna_gain<<4))
+        else:
+            raise ValueError('Antenna gain has to be in the range 0...7')
 
     def card_write(self, command, data):
         back_data = []
@@ -217,6 +231,43 @@ class RFID(object):
 
         return (error, back_data, back_length)
 
+    def read_id(self, as_number = False):
+        """
+        Obtains the id (4 or 7 bytes) of a tag (if present)
+        Return None on error or not present, otherwise returns tag ID
+
+        The as_number argument can be used to return the UID as an integer. It
+        defaults to a list like the rest of the API.
+        """
+
+        # Check if there is anything there
+        error, tag_type = self.request()
+        if error:
+            return None
+
+        # Get the UID
+        error, uid = self.anticoll()
+        if error:
+            return None
+
+        # Do we have an incomplete UID?!
+        if uid[0] != 0x88:
+            return int.from_bytes(uid[0:4], 'big') if as_number else uid[0:4]
+
+        # Activate the tag with the incomplete UID
+        error = self.select_tag(uid)
+        if error:
+            return None
+
+        # Get the remaining bytes
+        error, uid2 = self.anticoll2()
+        if error:
+            return None
+
+        # Build the final UID without checksums
+        real_uid = uid[1:-1] + uid2[:-1]
+        return int.from_bytes(real_uid, 'big') if as_number else real_uid
+
     def request(self, req_mode=0x26):
         """
         Requests for tag.
@@ -245,6 +296,33 @@ class RFID(object):
 
         self.dev_write(0x0D, 0x00)
         serial_number.append(self.act_anticl)
+        serial_number.append(0x20)
+
+        (error, back_data, back_bits) = self.card_write(self.mode_transrec, serial_number)
+        if not error:
+            if len(back_data) == 5:
+                for i in range(4):
+                    serial_number_check = serial_number_check ^ back_data[i]
+
+                if serial_number_check != back_data[4]:
+                    error = True
+            else:
+                error = True
+
+        return (error, back_data)
+
+    def anticoll2(self):
+        """
+        Anti-collision detection.
+        Returns tuple of (error state, tag ID).
+        """
+        back_data = []
+        serial_number = []
+
+        serial_number_check = 0
+
+        self.dev_write(0x0D, 0x00)
+        serial_number.append(self.act_anticl2)
         serial_number.append(0x20)
 
         (error, back_data, back_bits) = self.card_write(self.mode_transrec, serial_number)
@@ -403,13 +481,15 @@ class RFID(object):
         self.irq.set()
 
     def wait_for_tag(self, timeout=0):
+        if self.pin_irq is None:
+            raise NotImplementedError('Waiting not implemented if IRQ is not used')
         # enable IRQ on detect
-        start_time = time.time()
         self.init()
         self.irq.clear()
         self.dev_write(0x04, 0x00)
         self.dev_write(0x02, 0xA0)
         # wait for it
+        start_time = time.time()
         waiting = True
         while waiting and (timeout == 0 or ((time.time() - start_time) < timeout)):
             self.init()

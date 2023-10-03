@@ -477,7 +477,7 @@ class RFID(object):
 
         return error
 
-    def irq_callback(self, pin):
+    def irq_callback(self, not_used=None):
         self.irq.set()
 
     def wait_for_tag(self, timeout=0):

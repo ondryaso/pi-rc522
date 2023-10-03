@@ -10,7 +10,7 @@ pip install pi-rc522
 
 Or get source code from Github:
 ```
-git clone https://github.com/kevinvalk/pi-rc522.git
+git clone https://github.com/ondryaso/pi-rc522.git
 cd pi-rc522
 python setup.py install
 ```

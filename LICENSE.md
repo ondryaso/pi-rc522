@@ -1,4 +1,4 @@
-Copyright (c) 2016 Ondřej Ondryáš {ondryaso}
+Copyright (c) 2023 Ondřej Ondryáš (ondryaso@ondryaso.eu) and contributors
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

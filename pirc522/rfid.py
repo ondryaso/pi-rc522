@@ -112,6 +112,14 @@ class RFID(object):
             GPIO.output(pin_ce, 1)
         self.init()
 
+    @staticmethod
+    def __uid_checksum(uid):
+        """Computes the checksum (XOR) of the UID"""
+        serial_number_check = 0
+        for i in range(4):
+            serial_number_check = serial_number_check ^ uid[i]
+        return serial_number_check
+
     def init(self):
         self.reset()
         self.dev_write(0x2A, 0x8D)
@@ -292,8 +300,6 @@ class RFID(object):
         back_data = []
         serial_number = []
 
-        serial_number_check = 0
-
         self.dev_write(0x0D, 0x00)
         serial_number.append(self.act_anticl)
         serial_number.append(0x20)
@@ -301,15 +307,12 @@ class RFID(object):
         (error, back_data, back_bits) = self.card_write(self.mode_transrec, serial_number)
         if not error:
             if len(back_data) == 5:
-                for i in range(4):
-                    serial_number_check = serial_number_check ^ back_data[i]
-
-                if serial_number_check != back_data[4]:
+                if self.__uid_checksum(back_data) != back_data[4]:
                     error = True
             else:
                 error = True
 
-        return (error, back_data)
+        return (error, back_data[:4])
 
     def anticoll2(self):
         """
@@ -371,8 +374,9 @@ class RFID(object):
         buf.append(self.act_select)
         buf.append(0x70)
 
-        for i in range(5):
-            buf.append(uid[i])
+        assert len(uid) == 4
+        buf.extend(uid)
+        buf.append(self.__uid_checksum(uid))
 
         crc = self.calculate_crc(buf)
         buf.append(crc[0])

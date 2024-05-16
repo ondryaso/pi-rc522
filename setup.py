@@ -32,7 +32,7 @@ setup(
     ],
     author='ondryaso',
     author_email='ondryaso@ondryaso.eu',
-    url='https://github.com/kevinvalk/pi-rc522',
+    url='https://github.com/ondryaso/pi-rc522',
     license='MIT',
     install_requires=['spidev', 'RPi.GPIO'],
 )
